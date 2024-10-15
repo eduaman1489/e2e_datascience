@@ -30,14 +30,14 @@ class PredictPipeline:
             raise Custom_Exception(e, sys)
 
 input_columns = ["Pregnancies","Glucose","BloodPressure","SkinThickness","Insulin","BMI","DiabetesPedigreeFunction","Age"]
-features = [6,148,72,35,0,33.6,0.627,50] # output 1
+#features = [6,148,72,35,0,33.6,0.627,50] # output 1
 #features = [1,85,66,29,0,26.6,0.351,31] # output 0
 
-if __name__ == "__main__":
-    predict_pipeline = PredictPipeline()
-    prediction = predict_pipeline.predict_method(features)
-    logging.info("Prediction completed successfully")
-    print("Prediction result :", prediction)
+# if __name__ == "__main__":
+#     predict_pipeline = PredictPipeline()
+#     prediction = predict_pipeline.predict_method(features)
+#     logging.info("Prediction completed successfully")
+#     print("Prediction result :", prediction)
 
 
 
@@ -50,3 +50,38 @@ if __name__ == "__main__":
 # print('Scaled data :', scaled_data)
 # output = trained_model_file_path.predict(new_data)
 # print(output)
+
+###########################################################################################
+
+
+from flask import Flask, request, jsonify
+import pandas as pd
+import numpy as np
+import os
+import sys
+from src.pipelines.prediction_pipeline import PredictPipeline
+from src.utils.logger import logging
+from src.utils.exception_handler import Custom_Exception
+from src.utils.other_utils import load_object
+
+app = Flask(__name__)
+
+@app.route('/predict', methods=['POST'])
+def predict_api():
+    try:
+        data = request.json['data']
+        logging.info('Raw data received in API')
+        print(data)
+        predict_pipeline = PredictPipeline()
+        prediction = predict_pipeline.predict(data)
+        result = prediction[0]
+        return jsonify({"prediction": result})  
+
+    except Exception as e:
+        logging.error("Error in prediction: %s", str(e))
+        raise Custom_Exception(e, sys)
+        return jsonify({"error": str(e)}), 400 
+
+if __name__=="__main__":
+    app.run(host='0.0.0.0', port=5000, debug=True) # app.run(threaded=True) to make it Multi-threaded, otherwise its single-threaded
+   

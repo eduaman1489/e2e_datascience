@@ -30,7 +30,7 @@ class PredictPipeline:
             raise Custom_Exception(e, sys)
 
 input_columns = ["Pregnancies","Glucose","BloodPressure","SkinThickness","Insulin","BMI","DiabetesPedigreeFunction","Age"]
-features = [6,148,72,35,0,33.6,0.627,50] # output 1
+#features = [6,148,72,35,0,33.6,0.627,50] # output 1
 #features = [1,85,66,29,0,26.6,0.351,31] # output 0
 
 if __name__ == "__main__":

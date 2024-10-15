@@ -18,7 +18,7 @@ train_path = "artifacts/train.csv"
 test_path = "artifacts/test.csv"
 
 all_cols = ["Pregnancies","Glucose","BloodPressure","SkinThickness","Insulin","BMI","DiabetesPedigreeFunction","Age","Outcome"]
-numerical_cols = ["Pregnancies","Glucose","BloodPressure","SkinThickness","Insulin","BMI","DiabetesPedigreeFunction","Age","Outcome"]
+numerical_cols = ["Pregnancies","Glucose","BloodPressure","SkinThickness","Insulin","BMI","DiabetesPedigreeFunction","Age"]
 target_col = "Outcome"
 
 @dataclass
@@ -26,6 +26,8 @@ class FeatureEngineering:
     def __init__(self):
         self.train_data_path = os.path.join("artifacts", "train_array.npy")
         self.test_data_path = os.path.join("artifacts", "test_array.npy")
+        self.train_data_path_csv = os.path.join("artifacts", "train_array.csv")
+        self.test_data_path_csv = os.path.join("artifacts", "test_array.csv")
         self.preprocessor_obj_file_path = os.path.join('artifacts', 'preprocessor.pkl')
 
     def data_transformation(self):
@@ -54,10 +56,10 @@ class FeatureEngineering:
 
             input_feature_train = train_df[numerical_cols]
             target_feature_train = train_df[target_col]
-            
+
             input_feature_test = test_df[numerical_cols]
             target_feature_test = test_df[target_col]
-            
+
             input_feature_train_array = transformer_object.fit_transform(input_feature_train)
             input_feature_test_array = transformer_object.transform(input_feature_test)
             logging.info("Fitting & transforming the data using Transformer object")
@@ -70,10 +72,14 @@ class FeatureEngineering:
             np.save(self.test_data_path, test_array)
             logging.info("Train and test datasets saved as Numpy array")
 
-            train_df = pd.DataFrame(train_array)
-            test_df = pd.DataFrame(test_array)
-            train_df.to_csv(self.train_data_path, index=False)
-            test_df.to_csv(self.test_data_path, index=False)
+            train_df = pd.DataFrame(train_array,columns=[numerical_cols+[target_col]])
+            test_df = pd.DataFrame(test_array,columns=[numerical_cols+[target_col]])
+
+            train_df[target_col] = train_df[target_col].astype(int) # Converting to int , because concatenation make it float
+            test_df[target_col] = test_df[target_col].astype(int)
+
+            train_df.to_csv(self.train_data_path_csv, index=False)
+            test_df.to_csv(self.test_data_path_csv, index=False)
             logging.info("Train and test datasets saved as CSV")
 
             save_object(file_path=self.preprocessor_obj_file_path, obj=transformer_object)
@@ -82,6 +88,7 @@ class FeatureEngineering:
             #return train_array, test_array
             return train_df, test_df
         except Exception as e:
+            logging.error("Error in prediction: %s", str(e))
             raise Custom_Exception(e, sys)
 
 # if __name__ == "__main__":

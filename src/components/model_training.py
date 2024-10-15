@@ -57,12 +57,12 @@ class ModelTraining:
                 else:
                     mse = np.square(y_test - y_pred).mean() # Else Regression
                     model_report[model_name] = -mse  # We store negative MSE to find the best score
-
+            print('*'*70)
             print("Model Report:", model_report)
             best_model_name = max(model_report, key=model_report.get) if is_classification else min(model_report, key=model_report.get)
             best_model = models[best_model_name]
-            print(f"Best Model: {best_model_name} with Score: {model_report[best_model_name]}")
-            logging.info(f"Best Model: {best_model_name} with Score: {model_report[best_model_name]}")
+            print(f"Best Model with default params: {best_model_name} with Score: {model_report[best_model_name]}")
+            logging.info(f"Best Model with default params: {best_model_name} with Score: {model_report[best_model_name]}")
             param_distributions = {}
             if is_classification:
                 param_distributions = {
@@ -77,6 +77,8 @@ class ModelTraining:
                     'Lasso': {'alpha': np.logspace(-4, 4, 20)}
                 }
             
+            print("\nNow running random search cv:")
+            logging.info("\nNow running random search cv:")
             random_search = None
             if best_model_name in param_distributions:
                 random_search = RandomizedSearchCV(best_model, param_distributions[best_model_name],
@@ -95,7 +97,7 @@ class ModelTraining:
             logging.info(f"Model Report: {model_report}")
             logging.info(f"Best Model found via RandomSearchCV: {best_model_name} with params: {random_search.best_estimator_}")
             print(f"Best Model found via RandomSearchCV: {best_model_name} with params: {random_search.best_estimator_}")
-            
+            print('*'*70)
             save_object(file_path=self.trained_model_file_path, obj=random_search.best_estimator_)
             logging.info("Best model Object saved to Artifacts")
 
@@ -105,10 +107,11 @@ class ModelTraining:
         except Exception as e:
             logging.info('Exception occured at Model Training')
             raise Custom_Exception(e, sys)
-                
+
+is_classification = True
+
 # train_array = pd.read_csv("artifacts\\train.csv")
 # test_array = pd.read_csv("artifacts\\test.csv")
-# is_classification = True
 
 # if __name__ == "__main__":
 #     model_training = ModelTraining()

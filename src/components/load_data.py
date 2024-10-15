@@ -9,7 +9,6 @@ from pathlib import Path
 import os
 
 dataset = "https://raw.githubusercontent.com/plotly/datasets/refs/heads/master/diabetes.csv"
-dataset = "https://raw.githubusercontent.com/plotly/refs/heads/master/diabetes.csv"
 
 @dataclass
 class Data_Ingestion: # Build a artifacts folder with file names like raw.csv, train.csv etc
@@ -36,6 +35,7 @@ class Data_Ingestion: # Build a artifacts folder with file names like raw.csv, t
             return self.train_data_path, self.test_data_path
 
         except Exception as e:
+            logging.error("Error in prediction: %s", str(e))
             raise Custom_Exception(e,sys)
         
 # if __name__ == "__main__":
