@@ -1,0 +1,17 @@
+
+
+# @dataclass
+# class DataIngestionConfig:
+# 	pass
+
+# class DataIngestion:
+#     def __init__(self):
+#         pass
+    
+#     def initiate_data_ingestion(self):
+#         logging.info("data ingestion started")
+#         try:
+#             pass
+#         except Exception as e:
+#             logging.info()
+#             raise Custom_Exception(e,sys)
