@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/aamandeep/Downloads/Deloitte%20Ireland/Project%20Work/Deloitte%20Internal/MLOps/e2e_datascience/mlruns/0/f44fae6fefb64bfba0a2b213426f0656/artifacts
+end_time: 1729087591404
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: f44fae6fefb64bfba0a2b213426f0656
+run_name: resilient-goose-604
+run_uuid: f44fae6fefb64bfba0a2b213426f0656
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729087584941
+status: 3
+tags: []
+user_id: aamandeep

@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/aamandeep/Downloads/Deloitte%20Ireland/Project%20Work/Deloitte%20Internal/MLOps/e2e_datascience/mlruns/0/4ac690c95af94e6c8af4d9fb47e0b0ed/artifacts
+end_time: 1729087463874
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 4ac690c95af94e6c8af4d9fb47e0b0ed
+run_name: luminous-fawn-80
+run_uuid: 4ac690c95af94e6c8af4d9fb47e0b0ed
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729087463776
+status: 4
+tags: []
+user_id: aamandeep

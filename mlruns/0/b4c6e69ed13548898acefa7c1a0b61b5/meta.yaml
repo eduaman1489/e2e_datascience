@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/aamandeep/Downloads/Deloitte%20Ireland/Project%20Work/Deloitte%20Internal/MLOps/e2e_datascience/mlruns/0/b4c6e69ed13548898acefa7c1a0b61b5/artifacts
+end_time: 1729087532725
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: b4c6e69ed13548898acefa7c1a0b61b5
+run_name: nebulous-snail-416
+run_uuid: b4c6e69ed13548898acefa7c1a0b61b5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729087521040
+status: 3
+tags: []
+user_id: aamandeep

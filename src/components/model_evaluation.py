@@ -78,12 +78,12 @@ class ModelEvaluation_MLFlow:
             logging.error("Error in prediction: %s", str(e))
             raise Custom_Exception(e, sys)
         
-is_classification = True
-train_array = pd.read_csv("artifacts\\train.csv")
-test_array = pd.read_csv("artifacts\\test.csv")
+# is_classification = True
+# train_array = pd.read_csv("artifacts\\train.csv")
+# test_array = pd.read_csv("artifacts\\test.csv")
 
-if __name__ == "__main__":
-    model_evaluation = ModelEvaluation_MLFlow()
-    model_evaluation.initiate_model_evaluation(train_array, test_array)
-    logging.info("Model Evaluation/ MLFlow Experiment tracking  module ran successfully.")
-    print("Model Evaluation/ MLFlow Experiment tracking  module ran successfully.")
+# if __name__ == "__main__":
+#     model_evaluation = ModelEvaluation_MLFlow()
+#     model_evaluation.initiate_model_evaluation(train_array, test_array)
+#     logging.info("Model Evaluation/ MLFlow Experiment tracking  module ran successfully.")
+#     print("Model Evaluation/ MLFlow Experiment tracking  module ran successfully.")
