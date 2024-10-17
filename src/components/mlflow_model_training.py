@@ -155,12 +155,12 @@ class ModelTraining:
             logging.error("Error in prediction: %s", str(e))
             raise Custom_Exception(e, sys)
        
-is_classification = True
-train_array = pd.read_csv("artifacts\\train.csv")
-test_array = pd.read_csv("artifacts\\test.csv")
+# is_classification = True
+# train_array = pd.read_csv("artifacts\\train.csv")
+# test_array = pd.read_csv("artifacts\\test.csv")
 
-if __name__ == "__main__":
-    model_training = ModelTraining(experiment_name="Experiment # 1")
-    model_training.initialize_data_training(train_array, test_array)
-    logging.info("Model Training Module ran successfully & best model saved")
-    print("Model Training  Module ran successfully.")
+# if __name__ == "__main__":
+#     model_training = ModelTraining(experiment_name="Experiment # 1")
+#     model_training.initialize_data_training(train_array, test_array)
+#     logging.info("Model Training Module ran successfully & best model saved")
+#     print("Model Training  Module ran successfully.")

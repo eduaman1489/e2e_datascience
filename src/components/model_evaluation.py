@@ -46,11 +46,13 @@ class ModelEvaluation_MLFlow:
 
             preprocessor=load_object(self.preprocessor_obj_file_path)
             model=load_object(self.trained_model_file_path)
-            logging.info("Model has been loaded successfully")
+            logging.info(" Best Model has been loaded successfullyfrom the Artifacts")
 
-            tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
-            print(tracking_url_type_store)
+            #mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
+            tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme  # If we dont set a set_tracking_uri, then it returns a file here otherwise http
+            print("tracking_url_type_store :", tracking_url_type_store)
             logging.info("Initiate MLFlow for Experiment tracking")
+
             with mlflow.start_run():
                 y_pred = model.predict(X_test)
                 if is_classification:
@@ -62,6 +64,7 @@ class ModelEvaluation_MLFlow:
                     if auc_roc is not None:
                         mlflow.log_metric("Auc_Roc", auc_roc)
                     logging.info("Metrics logged for Classification")
+                    mlflow.set_tag("Training Classification", "Running the best model")
                 else:
                     mse,rmse,mae,r2 =self.eval_metrics(y_test,y_pred,is_classification)
                     mlflow.log_metric("Mse", mse)
@@ -69,11 +72,18 @@ class ModelEvaluation_MLFlow:
                     mlflow.log_metric("R2", r2)
                     mlflow.log_metric("Mae", mae)
                     logging.info("Metrics logged for Regression")
+                    mlflow.set_tag("Training Regression", "Running the best model")
                  # Model registry does not work with file store
-                if tracking_url_type_store != "file":
-                    mlflow.sklearn.log_model(model, "model", registered_model_name="ml_model")
+                if tracking_url_type_store != "file": # It means we have set_tracking_uri
+                    model_info = mlflow.sklearn.log_model(model, "model" 
+                                                         # ,registered_model_name="ml_model" # Register once you validate it from UI against paramters for comparison
+                                                          )
+                    print("Model Info (Not a file) :", model_info.model_uri)
                 else:
-                    mlflow.sklearn.log_model(model, "model")
+                    model_info = mlflow.sklearn.log_model(model, "model"
+                                                          #,signature= sign
+                                                          )
+                    print("Model Info (Is a file) when we dont set uri:", model_info.model_uri) 
         except Exception as e:
             logging.error("Error in prediction: %s", str(e))
             raise Custom_Exception(e, sys)

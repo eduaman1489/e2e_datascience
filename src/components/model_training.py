@@ -15,7 +15,7 @@ import os
 import dill
 
 from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, AdaBoostClassifier
 from sklearn.svm import SVC 
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import RandomizedSearchCV
@@ -30,6 +30,7 @@ class ModelTraining:
         try:
             X_train, y_train, X_test, y_test = (train_array.iloc[:,:-1],train_array.iloc[:,-1],
                                                 test_array.iloc[:,:-1],test_array.iloc[:,-1])
+                                                
             logging.info("Checking if its a Classification or Regression problem")
             if is_classification:
                 models = {
@@ -41,7 +42,7 @@ class ModelTraining:
             else:
                 models = {
                     'LinearRegression': LinearRegression(),
-                    'Lasso': Lasso()
+                    'RandomForestRegressor': RandomForestRegressor()
                 }
 
             model_report = {}
@@ -49,20 +50,24 @@ class ModelTraining:
                 model.fit(X_train, y_train)
                 y_pred = model.predict(X_test)
                 
-                # Check for regression & classification problem)
                 #if hasattr(model, "score"):  # Check if model has a score method , then classification
-                if is_classification:  # Check if model has a score method , then classification
+                if is_classification: 
                     score = model.score(X_test, y_test)
                     model_report[model_name] = score
                 else:
-                    mse = np.square(y_test - y_pred).mean() # Else Regression
-                    model_report[model_name] = -mse  # We store negative MSE to find the best score
+                    mse = np.square(y_test - y_pred).mean() 
+                    model_report[model_name] = -mse  # We store negative MSE, to find the best score
+            logging.info("Model report built for all the given models on default params setting")
+           
             print('*'*70)
             print("Model Report:", model_report)
             best_model_name = max(model_report, key=model_report.get) if is_classification else min(model_report, key=model_report.get)
             best_model = models[best_model_name]
-            print(f"Best Model with default params: {best_model_name} with Score: {model_report[best_model_name]}")
-            logging.info(f"Best Model with default params: {best_model_name} with Score: {model_report[best_model_name]}")
+            print(f"Best Model with default params is: {best_model_name} with Score: {model_report[best_model_name]}")
+            logging.info(f"Best Model with default params is: {best_model_name} with Score: {model_report[best_model_name]}")
+            print('*'*70)
+            
+            logging.info(f"Now running the {best_model_name} with all given parameters using RandomSearchCV")
             param_distributions = {}
             if is_classification:
                 param_distributions = {
@@ -70,36 +75,35 @@ class ModelTraining:
                     'AdaBoost': {'n_estimators': [50, 100, 200], 'learning_rate': [0.01, 0.1, 1.0]},
                     'LogisticRegression': {"C":np.logspace(-3,3,7), "penalty":["l1","l2"]},
                     'SupportVectorMachine': {'C': [0.1, 1, 10, 100, 1000],  'gamma': [1, 0.1, 0.01, 0.001, 0.0001], 'kernel': ['rbf']}
-                }
+                                      }
             else:
                 param_distributions = {
                     'LinearRegression': {},
-                    'Lasso': {'alpha': np.logspace(-4, 4, 20)}
-                }
-            
-            print("\nNow running random search cv:")
-            logging.info("\nNow running random search cv:")
+                    'RandomForestRegressor': {'n_estimators': [50, 100, 200], 'max_depth': [None, 10, 20, 30],'min_samples_split': [2, 5],'min_samples_leaf': [1, 2]}
+                                      }
             random_search = None
             if best_model_name in param_distributions:
                 random_search = RandomizedSearchCV(best_model, param_distributions[best_model_name],
-                                                n_iter=10, cv=2, 
-                                                scoring='accuracy' if is_classification else 'neg_mean_squared_error',
-                                                random_state=42)
-                logging.info("Finding best model using random_search")
+                                                   n_iter=10, cv=5, 
+                                                   scoring='accuracy' if is_classification else 'neg_mean_squared_error',
+                                                   random_state=42)
+                logging.info(f"Fitting {best_model_name} using RandomSearchCV")
                 random_search.fit(X_train, y_train)
 
                 if not is_classification:
-                    print(f"Best parameters for {best_model_name}: {random_search.best_params_}")
-                    print(f"Best score from RandomizedSearchCV (Regression) is: {best_model_name}  {-random_search.best_score_}")
+                    print(f"Best parameters for {best_model_name} are : {random_search.best_params_}")
+                    print(f"Best score for {best_model_name} is: {random_search.best_score_}")
+                    logging.info(f"Best parameters for {best_model_name} are : {random_search.best_params_}")
+                    logging.info(f"Best score for {best_model_name} is: {random_search.best_score_}")
                 else:
-                    print(f"Best parameters for {best_model_name}: {random_search.best_params_}")
-                    print(f"Best score from RandomizedSearchCV (Classification) is: {best_model_name} {random_search.best_score_}")
-            logging.info(f"Model Report: {model_report}")
-            logging.info(f"Best Model found via RandomSearchCV: {best_model_name} with params: {random_search.best_estimator_}")
-            print(f"Best Model found via RandomSearchCV: {best_model_name} with params: {random_search.best_estimator_}")
+                    print(f"Best parameters for {best_model_name} are: {random_search.best_params_}")
+                    print(f"Best score for {best_model_name} is: {random_search.best_score_}")
+                    logging.info(f"Best parameters for {best_model_name} are : {random_search.best_params_}")
+                    logging.info(f"Best score for {best_model_name} is: {random_search.best_score_}")
+                    
             print('*'*70)
             save_object(file_path=self.trained_model_file_path, obj=random_search.best_estimator_)
-            logging.info("Best model Object saved to Artifacts")
+            logging.info("Best model Object saved to Artifacts with its best hyperparameters")
 
             return random_search.best_estimator_ if random_search else best_model, model_report
             #return random_search.best_estimator_, model_report
@@ -108,8 +112,7 @@ class ModelTraining:
             logging.info('Exception occured at Model Training')
             raise Custom_Exception(e, sys)
 
-is_classification = True
-
+# is_classification = True
 # train_array = pd.read_csv("artifacts\\train.csv")
 # test_array = pd.read_csv("artifacts\\test.csv")
 
