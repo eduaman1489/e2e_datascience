@@ -6,3 +6,5 @@ flask
 mlflow==2.2.2
 dvc
 dill
+astro-sdk-python
+#apache-airflow

@@ -1,0 +1,25 @@
+artifact_path: model
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.10.10
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.5.2
+mlflow_version: 2.2.2
+model_uuid: 098a79eb763d48fd9d3facabc3e09e8b
+run_id: 2415b8b94fc94311bb66a50836c54c60
+signature:
+  inputs: '[{"name": "Pregnancies", "type": "long"}, {"name": "Glucose", "type": "long"},
+    {"name": "BloodPressure", "type": "long"}, {"name": "SkinThickness", "type": "long"},
+    {"name": "Insulin", "type": "long"}, {"name": "BMI", "type": "double"}, {"name":
+    "DiabetesPedigreeFunction", "type": "double"}, {"name": "Age", "type": "long"}]'
+  outputs: '[{"name": "Outcome", "type": "long"}]'
+utc_time_created: '2024-10-24 13:02:18.679586'

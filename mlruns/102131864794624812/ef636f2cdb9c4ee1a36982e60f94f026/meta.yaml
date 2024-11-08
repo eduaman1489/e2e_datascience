@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/aamandeep/Downloads/Deloitte%20Ireland/Project%20Work/Deloitte%20Internal/MLOps/e2e_datascience/mlruns/102131864794624812/ef636f2cdb9c4ee1a36982e60f94f026/artifacts
+end_time: 1729774933067
+entry_point_name: ''
+experiment_id: '102131864794624812'
+lifecycle_stage: active
+run_id: ef636f2cdb9c4ee1a36982e60f94f026
+run_name: RandomForestClassifier
+run_uuid: ef636f2cdb9c4ee1a36982e60f94f026
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729774921203
+status: 3
+tags: []
+user_id: aamandeep

@@ -2,6 +2,11 @@ import sys
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+from sklearn import metrics
+from sklearn.metrics import confusion_matrix,ConfusionMatrixDisplay
+from sklearn.metrics import roc_curve, auc
+import pprint
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
@@ -13,6 +18,7 @@ from src.utils.other_utils import save_object
 from dataclasses import dataclass
 import os
 import dill
+from datetime import datetime
 
 from sklearn.linear_model import LinearRegression, Lasso, LogisticRegression
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, AdaBoostClassifier
@@ -34,8 +40,28 @@ warnings.filterwarnings("ignore")
 @dataclass
 class ModelTraining: 
     def __init__(self,experiment_name):
-        self.trained_model_file_path = os.path.join('artifacts', 'model.pkl')
-    
+        pass
+        #self.trained_model_file_path = os.path.join('artifacts', 'model.pkl')
+        #self.trained_model_file_path = os.path.join('artifacts', f'{model_name.lower().replace(" ", "_")}_model.pkl')
+        #self.trained_model_CM_path = os.path.join('artifacts', f'confusion_matrix.png')
+
+    def plot_roc_curve(self,y_test, y_scores, model_name):
+        fpr, tpr, _ = roc_curve(y_test, y_scores)
+        roc_auc = auc(fpr, tpr)
+        plt.figure()
+        plt.plot(fpr, tpr, color='blue', lw=2, label='ROC curve (area = {:.2f})'.format(roc_auc))
+        plt.plot([0, 1], [0, 1], color='red', lw=2, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title('Receiver Operating Characteristic for {}'.format(model_name))
+        plt.legend(loc="lower right")
+        roc_curve_path = os.path.join('artifacts', f'AUCROC_{model_name}.png')
+        plt.savefig(roc_curve_path)
+        plt.close() 
+        return roc_curve_path
+
     def eval_metrics(self,y_test,y_pred,is_classification):
         if is_classification:
             accuracy = accuracy_score(y_test, y_pred)
@@ -44,6 +70,8 @@ class ModelTraining:
             f1 = f1_score(y_test, y_pred, average='weighted')
             try:
                 auc_roc = roc_auc_score(y_test, y_pred)  # as it requires probabilities for AUC
+                # metrics.plot_roc_curve(model_name, y_test, y_pred) 
+                # plt.savefig('roc_auc_curve.png')
             except ValueError:
                 auc_roc = None  # Handle case where AUC cannot be computed
             logging.info("Classification Metrics captured")
@@ -92,7 +120,7 @@ class ModelTraining:
                     })
                 }
             }
-            
+            mlflow.set_experiment(experiment_name)
             #mlflow.set_tracking_uri(uri="http://127.0.0.1:5000")
             tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme  # If we dont set a set_tracking_uri, then it returns a file here otherwise http
             print("tracking_url_type_store :", tracking_url_type_store)
@@ -101,7 +129,7 @@ class ModelTraining:
             model_report = {} 
             for model_name, (model, param_dist) in models[is_classification].items():
                 with mlflow.start_run(run_name=model_name):
-                    print(f"Currently running {model_name}")
+                    print(f"Currently running : {model_name}")
                     random_search = RandomizedSearchCV(
                     model,
                     param_dist,
@@ -114,15 +142,40 @@ class ModelTraining:
                     best_model = random_search.best_estimator_
                     best_params = random_search.best_params_
                     print(f"Best hyperparams for {model_name} is :", best_params)
-                    #logging.info(f"Best hyperparams for {model_name} is :", {str(best_params)})
+                    #logging.info(f"Best hyperparams for {model_name} is :", {best_params})
                     
                     for param, value in best_params.items():
                         mlflow.log_param(param, value)
-                    logging.info("All hyperparams logged")
+                    logging.info(f"All hyperparams logged for {model_name}")
                     y_pred = best_model.predict(X_test)
 
                     if is_classification:
+                        if hasattr(best_model, 'predict_proba'):
+                            y_scores = best_model.predict_proba(X_test)[:, 1]  # For binary classification
+                            roc_curve_path = self.plot_roc_curve(y_test, y_scores, model_name)
+                            mlflow.log_artifact(roc_curve_path)
+                            logging.info(f"ROC AUC Curve logged for {model_name}")
+                        else:
+                            logging.warning(f"{model_name} does not support probability predictions. ROC AUC Curve cannot be generated.")
+
+
+                        cm = confusion_matrix(y_test, y_pred, labels=best_model.classes_)
+                        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=best_model.classes_)
+                        self.trained_model_CM_path = os.path.join('artifacts', f'confusion_matrix_{model_name}.png')
+                        disp.plot()
+                        plt.savefig(self.trained_model_CM_path)
+                        mlflow.log_artifact(self.trained_model_CM_path)
+                        logging.info(f"Confusion Matrix logged for {model_name}")
+
                         accuracy, precision, recall, f1, auc_roc = self.eval_metrics(y_test, y_pred, is_classification)
+                        model_report[model_name] = {
+                                                    'accuracy': accuracy,
+                                                    'precision': precision,
+                                                    'recall': recall,
+                                                    'f1': f1,
+                                                    'auc_roc': auc_roc
+                                                }
+                        pprint.pprint(model_report[model_name], width=50, indent=2)
                         mlflow.log_metric("Accuracy", accuracy)
                         mlflow.log_metric("Precision", precision)
                         mlflow.log_metric("Recall", recall)
@@ -150,7 +203,18 @@ class ModelTraining:
                                                              ,signature= signature
                                                               )
                         print("Model Info (Is a file) when we dont set uri:", model_info.model_uri) 
-                    print("*"*80)
+                print('Algorithm run - %s is logged to Experiment - %s' %(model_name, experiment_name))
+                print("*"*200)
+            print("*********************** Below is the final report ***********************")
+            pprint.pprint(model_report, width=50, indent=2)
+
+            logging.info(f"Model report built {model_report} ")
+            best_model_name = max(model_report, key=lambda k: model_report[k]['accuracy'])
+            best_model = model_report[best_model_name]
+            print("Best model based on metric is :", str(best_model_name))
+            logging.info(f"Best model based on metric from Model report {best_model_name}")
+            self.trained_model_file_path = os.path.join('artifacts', f'model_{best_model_name.lower().replace(" ", "_")}.pkl')
+            save_object(file_path=self.trained_model_file_path, obj=best_model)
         except Exception as e:
             logging.error("Error in prediction: %s", str(e))
             raise Custom_Exception(e, sys)
@@ -158,9 +222,11 @@ class ModelTraining:
 is_classification = True
 train_array = pd.read_csv("artifacts\\train.csv")
 test_array = pd.read_csv("artifacts\\test.csv")
+experiment_name = "Experiment#1_"+ str(datetime.now().strftime("%d-%m-%y")) 
+#run_name="Run_no_1_"+str(datetime.now().strftime("%d-%m-%y"))
 
 if __name__ == "__main__":
-    model_training = ModelTraining(experiment_name="Experiment # 1")
+    model_training = ModelTraining(experiment_name=experiment_name)
     model_training.initialize_data_training(train_array, test_array)
     logging.info("Model Training Module ran successfully & best model saved")
     print("Model Training  Module ran successfully.")

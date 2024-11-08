@@ -1,0 +1,15 @@
+artifact_uri: file:///C:/Users/aamandeep/Downloads/Deloitte%20Ireland/Project%20Work/Deloitte%20Internal/MLOps/e2e_datascience/mlruns/102131864794624812/2415b8b94fc94311bb66a50836c54c60/artifacts
+end_time: 1729774942565
+entry_point_name: ''
+experiment_id: '102131864794624812'
+lifecycle_stage: active
+run_id: 2415b8b94fc94311bb66a50836c54c60
+run_name: Ada_Boost
+run_uuid: 2415b8b94fc94311bb66a50836c54c60
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1729774933087
+status: 3
+tags: []
+user_id: aamandeep
